@@ -23,6 +23,12 @@ Open the client URL → enter username and room → **Join Chat** → **Click to
 | `npm run client`| Vite dev server only (port 5173)     |
 | `npm run build` | Build client for production          |
 | `npm start`     | Run server (serves built client)     |
+| `npm test`      | Run server tests (Jest)               |
+| `npm run test:watch` | Run tests in watch mode          |
+
+## Tests (TDD)
+
+Server tests live in `server/**/__tests__/*.test.js`. Run with `npm test`. New features should add or update tests first, then implement.
 
 ## Production
 

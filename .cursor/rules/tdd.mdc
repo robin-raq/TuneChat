@@ -1,0 +1,11 @@
+---
+description: Use test-driven development; write tests first, then implement.
+alwaysApply: true
+---
+
+# TDD (Test-Driven Development)
+
+- **Red → Green → Refactor:** Write a failing test for the desired behavior, then implement until it passes, then refactor.
+- **Server:** Add or update tests in `server/**/__tests__/*.test.js` (Jest). Run `npm test` before committing.
+- **New features:** Add the test(s) first, see them fail, then implement.
+- **Bug fixes:** Add a test that reproduces the bug, then fix so the test passes.
