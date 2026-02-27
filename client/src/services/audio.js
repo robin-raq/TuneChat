@@ -5,6 +5,8 @@
 
 let polySynth = null;
 let noteSynth = null;
+let toneModule = null;
+let lastScheduledTime = 0;
 let initialized = false;
 
 const CHORDS = {
@@ -21,9 +23,11 @@ const NOTE_DURATION = 1;
  */
 export async function init() {
   if (initialized) return true;
-  const Tone = (await import("tone")).default;
+  const Tone = await import("tone");
+  toneModule = Tone;
   await Tone.start();
-  polySynth = new Tone.PolySynth(4, Tone.Synth).toDestination();
+  lastScheduledTime = Tone.now();
+  polySynth = new Tone.PolySynth({ voice: Tone.Synth, maxPolyphony: 4 }).toDestination();
   noteSynth = new Tone.Synth().toDestination();
   initialized = true;
   return true;
@@ -40,15 +44,21 @@ export function isReady() {
  * @param {string} note - e.g. "C4"
  */
 export function playNote(note) {
-  if (!noteSynth) return;
-  noteSynth.triggerAttackRelease(note, NOTE_DURATION);
+  if (!noteSynth || !toneModule) return;
+  const now = toneModule.now();
+  const when = Math.max(now, lastScheduledTime + 0.001);
+  lastScheduledTime = when + NOTE_DURATION;
+  noteSynth.triggerAttackRelease(note, NOTE_DURATION, when);
 }
 
 /**
  * @param {string} chordId - e.g. "sad🎶", "happy🎶", "meh🎶"
  */
 export function playChord(chordId) {
-  if (!polySynth) return;
+  if (!polySynth || !toneModule) return;
   const notes = CHORDS[chordId] || CHORDS["meh🎶"];
-  polySynth.triggerAttackRelease(notes, NOTE_DURATION);
+  const now = toneModule.now();
+  const when = Math.max(now, lastScheduledTime + 0.001);
+  lastScheduledTime = when + NOTE_DURATION;
+  polySynth.triggerAttackRelease(notes, NOTE_DURATION, when);
 }
