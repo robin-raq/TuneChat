@@ -216,9 +216,14 @@ a {
 }
 
 .piano-keys {
+  position: relative;
+  height: 100px;
+}
+
+.piano-keys-white {
   display: flex;
   align-items: flex-end;
-  height: 100px;
+  height: 100%;
   gap: 0;
 }
 
@@ -238,15 +243,24 @@ a {
   background: #eee;
 }
 
-.piano-key-black {
-  flex-shrink: 0;
-  width: 16px;
+.piano-keys-black {
+  position: absolute;
+  top: 0;
+  left: 0;
   height: 62%;
+  pointer-events: none;
+}
+
+.piano-keys-black .piano-key-black {
+  position: absolute;
+  width: 16px;
+  height: 100%;
+  top: 0;
+  margin: 0;
+  pointer-events: auto;
   background: #222;
   border: 1px solid #000;
   border-radius: 0 0 4px 4px;
-  margin-left: -8px;
-  margin-right: -8px;
   z-index: 1;
   cursor: pointer;
 }

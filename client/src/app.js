@@ -175,35 +175,77 @@ function renderChat() {
   return wrap;
 }
 
+const WHITE_KEY_WIDTH = 26;
+const BLACK_KEY_WIDTH = 16;
+const BLACK_KEY_OFFSET = 8; // overlap into adjacent white keys
+
+/** Per octave: white key indices (0–6) that have a black key to the right (C,D,F,G,A). */
+const BLACK_AFTER_WHITE_INDEX = [0, 1, 3, 4, 5];
+
 function renderKeyboard() {
   const wrap = document.createElement("div");
   wrap.className = "piano-keyboard";
-  const keys = [];
+
+  // White keys only (C3–B3, C4–B4, C5–B5) – one row
+  const whiteNotes = [];
   for (let oct = 3; oct <= 5; oct++) {
-    WHITE_KEYS.forEach((name) => keys.push({ name: name + oct, black: false }));
-    if (oct < 5) BLACK_KEYS.forEach((name) => keys.push({ name: name + oct, black: true }));
+    WHITE_KEYS.forEach((name) => whiteNotes.push(name + oct));
   }
-  keys.sort((a, b) => noteToSort(a.name) - noteToSort(b.name));
 
   const row = document.createElement("div");
   row.className = "piano-keys";
-  keys.forEach((k) => {
+
+  const whiteRow = document.createElement("div");
+  whiteRow.className = "piano-keys-white";
+  whiteNotes.forEach((name) => {
     const el = document.createElement("button");
     el.type = "button";
-    el.className = "piano-key " + (k.black ? "piano-key-black" : "piano-key-white");
-    el.textContent = k.black ? "" : k.name.replace(/#/g, "♯");
-    el.dataset.note = k.name;
-    el.title = k.name;
-    el.addEventListener("click", () => {
-      if (!state.socket) return;
-      if (audio.isReady()) audio.playNote(k.name);
-      socketLib.sendNote(state.socket, k.name);
-      socketLib.sendMessage(state.socket, `played ${k.name}`);
-    });
-    row.appendChild(el);
+    el.className = "piano-key piano-key-white";
+    el.textContent = name.replace(/#/g, "♯");
+    el.dataset.note = name;
+    el.title = name;
+    el.addEventListener("click", () => playKey(name));
+    whiteRow.appendChild(el);
   });
+  row.appendChild(whiteRow);
+
+  // Black keys: absolutely positioned between the correct white keys
+  const blackNotes = [];
+  for (let oct = 3; oct <= 4; oct++) {
+    BLACK_KEYS.forEach((name) => blackNotes.push(name + oct));
+  }
+
+  const blackRow = document.createElement("div");
+  blackRow.className = "piano-keys-black";
+  blackNotes.forEach((name, i) => {
+    const oct = Math.floor(i / 5);
+    const idxInOctave = i % 5;
+    const afterWhite = oct * 7 + BLACK_AFTER_WHITE_INDEX[idxInOctave];
+    const leftPx = (afterWhite + 1) * WHITE_KEY_WIDTH - BLACK_KEY_OFFSET;
+
+    const el = document.createElement("button");
+    el.type = "button";
+    el.className = "piano-key piano-key-black";
+    el.dataset.note = name;
+    el.title = name;
+    el.style.left = `${leftPx}px`;
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      playKey(name);
+    });
+    blackRow.appendChild(el);
+  });
+  row.appendChild(blackRow);
+
   wrap.appendChild(row);
   return wrap;
+}
+
+function playKey(note) {
+  if (!state.socket) return;
+  if (audio.isReady()) audio.playNote(note);
+  socketLib.sendNote(state.socket, note);
+  socketLib.sendMessage(state.socket, `played ${note}`);
 }
 
 function noteToSort(note) {
